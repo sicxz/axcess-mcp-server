@@ -13,7 +13,7 @@ import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { facilitator as cdpFacilitator } from '@coinbase/x402';
 
 export const TOOL_PRICING: Record<string, number> = {
-  evaluate_typography: 0.05,
+  evaluate_typography: 0.005,
   evaluate_accessibility: 0.10,
 };
 
