@@ -14,11 +14,11 @@ import { facilitator as cdpFacilitator } from '@coinbase/x402';
 
 export const TOOL_PRICING: Record<string, number> = {
   evaluate_typography: 0.005,
-  evaluate_accessibility: 0.10,
+  evaluate_accessibility: 0.01,
 };
 
 // Only tools that are actually implemented should be billable.
-export const BILLABLE_TOOLS = ['evaluate_typography'] as const;
+export const BILLABLE_TOOLS = ['evaluate_typography', 'evaluate_accessibility'] as const;
 
 export const DEFAULT_X402_NETWORK: Network = 'eip155:84532';
 export const DEFAULT_X402_FACILITATOR_URL = 'https://x402.org/facilitator';

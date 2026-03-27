@@ -44,6 +44,67 @@ export interface TypographySet {
   context?: string;
 }
 
+// ─── Accessibility Element (broader UI accessibility audit) ─────────────────
+
+export type AccessibilityElementType =
+  | 'button'
+  | 'link'
+  | 'input'
+  | 'checkbox'
+  | 'radio'
+  | 'select'
+  | 'icon'
+  | 'badge'
+  | 'alert'
+  | 'text'
+  | 'image'
+  | 'navigation'
+  | 'heading';
+
+export type InteractionState =
+  | 'default'
+  | 'hover'
+  | 'focus'
+  | 'active'
+  | 'disabled'
+  | 'error'
+  | 'success';
+
+export interface AccessibilityElement {
+  element_id?: string;
+  element_type: AccessibilityElementType;
+
+  // Dimensions — used for touch target checks
+  width_px?: number;
+  height_px?: number;
+
+  // Color — used for color-only conveyance checks
+  color_hex?: string;
+  background_color_hex?: string;
+
+  // Color-only information conveyance (WCAG 1.4.1)
+  uses_color_only?: boolean;        // true if color is the sole indicator of state/meaning
+  has_text_label?: boolean;         // has a visible text label in addition to color
+  has_icon_label?: boolean;         // has a supplementary icon
+  has_pattern_or_shape?: boolean;   // uses shape/pattern as a secondary indicator
+
+  // Focus indicator (WCAG 2.4.7 / 2.4.11)
+  is_interactive?: boolean;
+  focus_visible?: boolean;          // is focus indicator visible?
+  focus_indicator_color_hex?: string;
+  focus_indicator_background_color_hex?: string; // background behind the focus ring
+  focus_indicator_width_px?: number;             // CSS outline/border width in px
+
+  state?: InteractionState;
+  context?: string;
+}
+
+export interface AccessibilitySet {
+  elements: AccessibilityElement[];
+  screen_name?: string;
+  context?: string;
+}
+
 // ─── Output Types ───────────────────────────────────────────────────────────
 
 export interface RubricIssue {

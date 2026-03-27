@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { SERVER_NAME, SERVER_VERSION, PRICING_INFO } from './constants.js';
 import { evaluateTypographySet } from './rubric/evaluate.js';
 import { evaluateTypographyElement } from './rubric/typography.js';
+import { evaluateAccessibilitySet } from './rubric/evaluate_accessibility.js';
 
 // ─── Zod Schemas ─────────────────────────────────────────────────────────────
 
@@ -41,6 +42,50 @@ const TypographyElementSchema = z.object({
 const EvaluateTypographyInputSchema = z.object({
   elements: z.array(TypographyElementSchema).min(1).max(50)
     .describe('Array of typography elements to evaluate'),
+  screen_name: z.string().optional()
+    .describe('Name of the screen or component being evaluated'),
+}).strict();
+
+const AccessibilityElementSchema = z.object({
+  element_id: z.string().optional().describe('Optional ID for tracking (e.g. Figma node ID)'),
+  element_type: z
+    .enum(['button', 'link', 'input', 'checkbox', 'radio', 'select', 'icon', 'badge', 'alert', 'text', 'image', 'navigation', 'heading'])
+    .describe('Semantic role of the UI element'),
+  width_px: z.number().positive().optional()
+    .describe('Rendered width of the element in px'),
+  height_px: z.number().positive().optional()
+    .describe('Rendered height of the element in px'),
+  color_hex: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).optional()
+    .describe('Primary element color as hex'),
+  background_color_hex: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).optional()
+    .describe('Background color behind the element as hex'),
+  uses_color_only: z.boolean().optional()
+    .describe('True if color is the only way this element communicates state or meaning'),
+  has_text_label: z.boolean().optional()
+    .describe('True if the element has a visible text label'),
+  has_icon_label: z.boolean().optional()
+    .describe('True if the element has a supplementary icon'),
+  has_pattern_or_shape: z.boolean().optional()
+    .describe('True if the element uses shape or pattern as a secondary indicator'),
+  is_interactive: z.boolean().optional()
+    .describe('True if users can click, tap, or keyboard-navigate this element'),
+  focus_visible: z.boolean().optional()
+    .describe('True if a visible focus indicator is shown in the focused state'),
+  focus_indicator_color_hex: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).optional()
+    .describe('Color of the focus ring/outline as hex'),
+  focus_indicator_background_color_hex: z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/).optional()
+    .describe('Background color immediately behind the focus indicator as hex'),
+  focus_indicator_width_px: z.number().positive().optional()
+    .describe('Stroke width of the focus outline in px'),
+  state: z.enum(['default', 'hover', 'focus', 'active', 'disabled', 'error', 'success']).optional()
+    .describe('Interaction state being evaluated'),
+  context: z.string().optional()
+    .describe('Brief description of the element\'s role (e.g. "primary CTA", "error state badge")'),
+});
+
+const EvaluateAccessibilityInputSchema = z.object({
+  elements: z.array(AccessibilityElementSchema).min(1).max(50)
+    .describe('Array of UI elements to evaluate'),
   screen_name: z.string().optional()
     .describe('Name of the screen or component being evaluated'),
 }).strict();
@@ -90,8 +135,7 @@ Returns: JSON with tool descriptions, pricing, and rubric categories.`,
             name: 'evaluate_accessibility',
             price: PRICING_INFO.evaluate_accessibility,
             description:
-              'Full accessibility evaluation combining typography, color, and interaction checks. Produces an overall compliance score and prioritized issue list.',
-            status: 'coming_soon',
+              'Evaluates UI elements for accessibility issues beyond typography: touch target sizing, color-only information conveyance, focus indicator presence and contrast. Covers WCAG 1.4.1, 2.4.7, 2.4.11, 2.5.5, 2.5.8.',
           },
         ],
         rubric_categories: [
@@ -163,6 +207,63 @@ pass the typography properties to this tool for evaluation before shipping.`,
       const report = evaluateTypographySet({ elements, screen_name });
 
       // Truncate if necessary
+      const output = JSON.stringify(report, null, 2);
+      const truncated = output.length > 25000
+        ? JSON.stringify({ ...report, truncated: true, note: 'Response truncated. Evaluate in smaller batches.' }, null, 2)
+        : output;
+
+      return {
+        content: [{ type: 'text', text: truncated }],
+        structuredContent: report as unknown as Record<string, unknown>,
+      };
+    }
+  );
+
+  // ── Tool: evaluate_accessibility (PAID — $0.01) ────────────────────────────
+  server.registerTool(
+    'evaluate_accessibility',
+    {
+      title: 'Evaluate UI Accessibility',
+      description: `Evaluates UI elements for accessibility issues that automated scanners miss.
+
+COST: $0.01 USDC via x402 on Base-compatible EVM network per call.
+
+Checks beyond what axe/Lighthouse/WAVE catch at the design stage:
+- Touch targets below 24×24px (WCAG 2.5.8 AA hard fail)
+- Touch targets below 44×44px (WCAG 2.5.5 AAA recommended)
+- Information conveyed by color alone without a secondary indicator (WCAG 1.4.1)
+- Missing focus indicators on interactive elements (WCAG 2.4.7)
+- Focus rings thinner than 2px (WCAG 2.4.11)
+- Focus ring contrast below 3:1 against adjacent background (WCAG 2.4.11)
+- Interactive elements below the practical usability height floor
+
+Args:
+  - elements: Array of 1–50 UI element objects
+  - screen_name: Optional label for the evaluation report
+
+Each element requires: element_type.
+Provide width_px/height_px for touch target checks.
+Provide uses_color_only + secondary indicator flags for 1.4.1 checks.
+Provide is_interactive + focus_visible + focus indicator properties for focus checks.
+
+Returns: Structured report with:
+  - Per-element scores (0–100) and specific issues
+  - Severity levels (critical/major/minor) with WCAG references
+  - What automated tools miss and why
+  - Concrete fix recommendations
+  - Overall score and verdict (pass/needs_work/fail)
+  - Top issues sorted by severity`,
+      inputSchema: EvaluateAccessibilityInputSchema,
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async ({ elements, screen_name }) => {
+      const report = evaluateAccessibilitySet({ elements, screen_name });
+
       const output = JSON.stringify(report, null, 2);
       const truncated = output.length > 25000
         ? JSON.stringify({ ...report, truncated: true, note: 'Response truncated. Evaluate in smaller batches.' }, null, 2)
