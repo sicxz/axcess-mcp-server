@@ -8,7 +8,7 @@ import { HTTPFacilitatorClient, x402ResourceServer } from '@x402/core/server';
 import { ExactEvmScheme } from '@x402/evm/exact/server';
 import { facilitator as cdpFacilitator } from '@coinbase/x402';
 export const TOOL_PRICING = {
-    evaluate_typography: 0.05,
+    evaluate_typography: 0.005,
     evaluate_accessibility: 0.10,
 };
 // Only tools that are actually implemented should be billable.

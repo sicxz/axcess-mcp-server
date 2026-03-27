@@ -39,6 +39,65 @@ async function runHTTP() {
             },
         });
     });
+    // llms.txt — AI-readable description of this service
+    app.get('/llms.txt', (_req, res) => {
+        res.type('text/plain').send(`# Axcess — Typography Accessibility Evaluation
+
+A paid MCP server that evaluates typography for accessibility issues beyond what automated scanners catch.
+
+## Endpoint
+MCP Server: https://axcess-mcp-server.fly.dev/mcp
+Protocol: Model Context Protocol (MCP) over HTTP
+Payment: x402 — $0.05 USDC per evaluation on Base mainnet (eip155:8453)
+
+## Tools
+
+### list_capabilities
+Free. Returns available tools, pricing, and rubric categories.
+No payment required.
+
+### evaluate_typography
+Cost: $0.05 USDC (paid automatically via x402)
+Input: 1–50 typography element objects + optional screen_name
+Output: per-element accessibility scores, issues with severity, WCAG references, fix recommendations
+
+Required fields per element:
+- element_type: heading | body | caption | label | button | display | ui
+- font_size: number (px)
+- font_weight: number (100–900)
+- line_height: number (multiplier, e.g. 1.5)
+- color_hex: string (#rrggbb)
+- background_color_hex: string (#rrggbb)
+
+Optional fields:
+- element_id, heading_level, letter_spacing, text_transform, font_style
+- content_length, background_type, context
+
+## What It Catches That axe / Lighthouse / WAVE Miss
+- Contrast failures on thin-weight fonts (scanners use flat thresholds regardless of weight)
+- Body text below 16px (WCAG only requires text to be resizable, not that it starts readable)
+- Line height too tight for dyslexic users
+- Line length (measure) outside comfortable reading range
+- Extended all-caps and italic use that degrades readability
+- Letter spacing extremes that impair word recognition
+- Text on gradient, image, or pattern backgrounds (requires manual flag)
+- Weak heading hierarchy — headings that lack visual distinction from body text
+- Bringhurst and Lupton typographic craft rules beyond WCAG minimum compliance
+
+## Verdict Scale
+- pass: no critical issues, overall score >= 75
+- needs_work: major issues or score < 75
+- fail: any critical issue or score < 50
+
+## Payment
+Uses x402 protocol. Clients need a wallet funded with USDC on Base mainnet.
+Recommended client library: @x402/fetch (npm)
+Network: eip155:8453 (Base mainnet)
+
+## Source
+https://github.com/sicxz/axcess-mcp-server
+`);
+    });
     // x402 payment gate — runs before MCP processes the request
     app.use('/mcp', x402PaymentMiddleware());
     // MCP endpoint
