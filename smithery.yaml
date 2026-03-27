@@ -1,13 +1,13 @@
 name: axcess
-displayName: "Axcess — Typography Accessibility Evaluation"
+displayName: "Axcess — Design Accessibility Evaluation"
 description: >
-  Paid MCP server that evaluates typography for accessibility issues beyond
-  what axe, Lighthouse, and WAVE catch. Checks contrast with font-weight
-  context, minimum sizes, line height, line length, all-caps/italic abuse,
-  letter spacing, and Bringhurst/Lupton design-craft rules.
-  $0.05 USDC per evaluation via x402 on Base mainnet.
+  Paid MCP server that evaluates UI designs for accessibility issues beyond
+  what axe, Lighthouse, and WAVE catch. Two tools: typography (contrast with
+  font-weight context, sizes, line height, all-caps/italic, Bringhurst/Lupton
+  craft rules) and UI accessibility (touch targets, color-only conveyance,
+  focus indicators). $0.005–$0.01 USDC per evaluation via x402 on Base mainnet.
 license: MIT
-version: 0.1.0
+version: 0.2.0
 
 tools:
   - name: list_capabilities
@@ -16,7 +16,12 @@ tools:
     description: >
       Evaluates 1–50 typography elements for accessibility and design-craft
       issues. Returns per-element scores, severity-ranked issues, WCAG
-      references, and fix recommendations. $0.05 USDC.
+      references, and fix recommendations. $0.005 USDC.
+  - name: evaluate_accessibility
+    description: >
+      Evaluates 1–50 UI elements for touch target sizing (WCAG 2.5.5/2.5.8),
+      color-only information conveyance (WCAG 1.4.1), and focus indicator
+      presence and contrast (WCAG 2.4.7/2.4.11). $0.01 USDC.
 
 remote:
   url: https://axcess-mcp-server.fly.dev/mcp

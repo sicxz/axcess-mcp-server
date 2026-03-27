@@ -48,14 +48,15 @@ async function runHTTP(): Promise<void> {
 
   // llms.txt — AI-readable description of this service
   app.get('/llms.txt', (_req, res) => {
-    res.type('text/plain').send(`# Axcess — Typography Accessibility Evaluation
+    res.type('text/plain').send(`# Axcess — Design Accessibility Evaluation
 
-A paid MCP server that evaluates typography for accessibility issues beyond what automated scanners catch.
+A paid MCP server that evaluates UI designs for accessibility issues beyond what automated scanners catch.
+Built by a visual communication design educator with 18 years of critique experience.
 
 ## Endpoint
 MCP Server: https://axcess-mcp-server.fly.dev/mcp
 Protocol: Model Context Protocol (MCP) over HTTP
-Payment: x402 — $0.05 USDC per evaluation on Base mainnet (eip155:8453)
+Payment: x402 — USDC on Base mainnet (eip155:8453)
 
 ## Tools
 
@@ -64,7 +65,7 @@ Free. Returns available tools, pricing, and rubric categories.
 No payment required.
 
 ### evaluate_typography
-Cost: $0.05 USDC (paid automatically via x402)
+Cost: $0.005 USDC (paid automatically via x402)
 Input: 1–50 typography element objects + optional screen_name
 Output: per-element accessibility scores, issues with severity, WCAG references, fix recommendations
 
@@ -80,7 +81,24 @@ Optional fields:
 - element_id, heading_level, letter_spacing, text_transform, font_style
 - content_length, background_type, context
 
+### evaluate_accessibility
+Cost: $0.01 USDC (paid automatically via x402)
+Input: 1–50 UI element objects + optional screen_name
+Output: per-element issues for touch targets, color conveyance, and focus indicators
+
+Required fields per element:
+- element_type: button | link | input | checkbox | radio | select | icon | badge | alert | text | image | navigation | heading
+
+Optional fields (provide what you have — each unlocks more checks):
+- width_px, height_px: enables touch target checks (WCAG 2.5.5 / 2.5.8)
+- uses_color_only, has_text_label, has_icon_label, has_pattern_or_shape: enables color conveyance check (WCAG 1.4.1)
+- is_interactive, focus_visible: enables focus presence check (WCAG 2.4.7)
+- focus_indicator_color_hex, focus_indicator_background_color_hex, focus_indicator_width_px: enables focus quality checks (WCAG 2.4.11)
+- state, context
+
 ## What It Catches That axe / Lighthouse / WAVE Miss
+
+### Typography
 - Contrast failures on thin-weight fonts (scanners use flat thresholds regardless of weight)
 - Body text below 16px (WCAG only requires text to be resizable, not that it starts readable)
 - Line height too tight for dyslexic users
@@ -90,6 +108,14 @@ Optional fields:
 - Text on gradient, image, or pattern backgrounds (requires manual flag)
 - Weak heading hierarchy — headings that lack visual distinction from body text
 - Bringhurst and Lupton typographic craft rules beyond WCAG minimum compliance
+
+### UI Accessibility
+- Touch targets below 24×24px (WCAG 2.5.8 AA hard fail)
+- Touch targets below 44×44px (WCAG 2.5.5 AAA recommended)
+- Color as the only indicator of state or meaning, with no secondary indicator (WCAG 1.4.1)
+- Interactive elements with no visible focus ring (WCAG 2.4.7)
+- Focus rings thinner than 2px (WCAG 2.4.11)
+- Focus ring contrast below 3:1 against adjacent background (WCAG 2.4.11)
 
 ## Verdict Scale
 - pass: no critical issues, overall score >= 75

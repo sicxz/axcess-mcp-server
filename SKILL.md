@@ -1,10 +1,10 @@
-# Axcess — Typography Accessibility Evaluation
+# Axcess — Design Accessibility Evaluation
 
 ## What it does
 
-Evaluates typography elements for accessibility issues that automated scanners (axe, Lighthouse, WAVE) miss. Returns per-element scores, severity-ranked issues, WCAG references, and fix recommendations.
+Evaluates UI designs for accessibility issues that automated scanners (axe, Lighthouse, WAVE) miss. Two paid tools: typography evaluation and UI accessibility evaluation. Returns per-element scores, severity-ranked issues, WCAG references, and fix recommendations.
 
-Automated scanners catch ~30% of real accessibility issues. Axcess catches the rest: contrast failures on thin-weight fonts, body text below readable base sizes, weak heading hierarchy, line height and measure problems, extended all-caps and italic use, and Bringhurst/Lupton typographic craft failures.
+Automated scanners catch ~30% of real accessibility issues. Axcess catches the rest: contrast failures on thin-weight fonts, body text below readable base sizes, weak heading hierarchy, touch targets below minimum size, color-only state conveyance, missing or low-quality focus indicators.
 
 ## Endpoint
 
@@ -13,7 +13,7 @@ POST https://axcess-mcp-server.fly.dev/mcp
 ```
 
 Protocol: MCP (Model Context Protocol) over HTTP
-Payment: x402 — $0.005 USDC per call on Base mainnet (eip155:8453)
+Payment: x402 — USDC on Base mainnet (eip155:8453)
 
 ## Tools
 
@@ -43,6 +43,34 @@ Input: 1–50 typography element objects
 
 Output: per-element issues with severity (critical/major/minor), WCAG reference, finding, recommendation, and overall verdict (pass/needs_work/fail).
 
+### evaluate_accessibility
+**Cost: $0.01 USDC**
+
+Input: 1–50 UI element objects
+
+```json
+{
+  "screen_name": "Login Screen",
+  "elements": [
+    {
+      "element_type": "button",
+      "width_px": 40,
+      "height_px": 32,
+      "is_interactive": true,
+      "focus_visible": true,
+      "focus_indicator_color_hex": "#0057d8",
+      "focus_indicator_background_color_hex": "#ffffff",
+      "focus_indicator_width_px": 2,
+      "context": "Submit button"
+    }
+  ]
+}
+```
+
+Checks: touch target sizing (WCAG 2.5.5/2.5.8), color-only information conveyance (WCAG 1.4.1), focus indicator presence and contrast (WCAG 2.4.7/2.4.11).
+
+Output: per-element issues with severity (critical/major/minor), WCAG reference, finding, recommendation, and overall verdict (pass/needs_work/fail).
+
 ## What agents get back
 
 ```json
@@ -54,10 +82,10 @@ Output: per-element issues with severity (critical/major/minor), WCAG reference,
   },
   "top_issues": [
     {
-      "criterion_id": "TYP-CONTRAST-FAIL",
+      "criterion_id": "ACC-TOUCH-CRITICAL",
       "severity": "critical",
-      "finding": "Contrast ratio is 4.48:1. Required minimum is 4.5:1.",
-      "recommendation": "Increase contrast to at least 4.5:1.",
+      "finding": "Target measures 40×20px. WCAG 2.5.8 requires a minimum of 24×24px.",
+      "recommendation": "Increase the touch target to at least 24×24px.",
       "passes_wcag_minimum": false
     }
   ]
